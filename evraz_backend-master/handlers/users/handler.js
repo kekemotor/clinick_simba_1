@@ -41,24 +41,33 @@ async function createUser(object) {
 
 
 
-            const hash_password = (md5(object['User_password']));
-            const creatUser = await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword", "createDate")
-                                                  VALUES ($1, $2, $3, $4)`,
-                [
-                    object.userPhone,
-                    object.userEmail,
-                    object.userHashPassword,
-                    object.createDate,
-                ]);
+
 
         const mailOptions = {
             from: 'kostaykazunin@gmail.com',
             to: object.userEmail,
-            subject: 'Component-city',
-            text: 'your individual code verification => ' + random_code
+            subject: 'Clinic_simba',
+            text: 'your individual code verification => ' + random_code,
         }
-        await transporter.sendMail(mailOptions, err => {
+
+        await transporter.sendMail(mailOptions,  async err => {
             console.log(err)
+            let individual_code = object['individual_code']
+            if (random_code !== individual_code){
+                data.message = 'неправильно введён код авторизации'
+            }
+            else {
+                console.log('statusCode 200')
+                const hash_password = (md5(object['User_password']));
+                await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
+                                                  VALUES ($1, $2, $3)`,
+                    [
+                        object.userPhone,
+                        object.userEmail,
+                        hash_password,
+
+                    ]);
+            }
         })
     }catch (err){
         console.log(err)
@@ -82,7 +91,42 @@ async function createUser(object) {
     return data;
 }
 
+async function changeUserPassword(object){
+    const funcName = 'changeUserPassword';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400,
+    };
+    try {
+        const old_password = (md5(object['Old_password']));
+        const new_password = (md5(object['New_password']));
+        const UserEmail = object['userEmail'];
+        const checkUser = await client.query(`SELECT *
+        FROM users
+        WHERE "userEmail" = $1 and "userHashPassword" = $2`,
+            [
+                UserEmail,
+                old_password
+            ]);
+        if (checkUser.rows.length>0){
+            await client.query('UPDATE users SET "userHashPassword" = $1 where "userEmail" = $2', [new_password, UserEmail])
+        }
+        else{
+            data.message = 'такого пароля нет у нас в бд, сорян'
+        }
 
+    }catch (err){
+        console.log(err);
+    }
+
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+
+
+}
 
 async function ReceivingUsers(){
     const funcName = 'ReceivingUsers';
@@ -108,6 +152,7 @@ async function ReceivingUsers(){
 module.exports = {
     createUser: createUser,
     ReceivingUsers: ReceivingUsers,
+    changeUserPassword: changeUserPassword,
 
 };
 
