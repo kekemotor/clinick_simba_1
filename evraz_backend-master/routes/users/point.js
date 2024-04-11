@@ -1,4 +1,4 @@
-const { createUser, changeUserPassword} = require('../../handlers/users/handler');
+const { createUser, changeUserPassword, userLogin} = require('../../handlers/users/handler');
 const { ReceivingUsers } = require('../../handlers/users/handler');
 module.exports = function (fastify, opts, next) {
     
@@ -20,6 +20,16 @@ module.exports = function (fastify, opts, next) {
             reply.send(data)
         },
     });
+    fastify.route({
+        url:    '/Login',
+        method: 'POST',
+        async handler(request, reply) {
+            const data = await userLogin(request.body);
+            reply.status(data.statusCode)
+            reply.send(data)
+        },
+    });
+
 
     fastify.route({
         url:    '/catch',
@@ -35,3 +45,5 @@ module.exports = function (fastify, opts, next) {
     
     next();
 };
+
+

@@ -37,8 +37,8 @@ async function createUser(object) {
 
 
 
-        let random_code = getRandom(10000,99999).toString()
-
+        // let random_code = getRandom(10000,99999).toString()
+        let random_code = 444222
 
 
 
@@ -58,6 +58,7 @@ async function createUser(object) {
             }
             else {
                 console.log('statusCode 200')
+                console.log( )
                 const hash_password = (md5(object['User_password']));
                 await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
                                                   VALUES ($1, $2, $3)`,
@@ -128,6 +129,48 @@ async function changeUserPassword(object){
 
 }
 
+
+
+
+async function userLogin(object){
+    const funcName = 'userLogin';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400,
+    };
+    try {
+
+        const hash_password = (md5(object['User_password']));
+        console.log(hash_password)
+        const user_check =  await client.query(`SELECT *
+        FROM users
+        where "userEmail" = $1 and "userHashPassword" = $2`, [object['userEmail'],hash_password]
+        );
+        console.log(user_check)
+        if (user_check.rows.length >0){
+            data.statusCode = 200
+            data.message = 'all good'
+        }
+        else {
+            data.message = 'неверный пароль или почта'
+        }
+    }catch (err){
+        console.log(err);
+    }
+
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+
+
+}
+
+
+
+
+
 async function ReceivingUsers(){
     const funcName = 'ReceivingUsers';
     const client = await pool.connect();
@@ -153,6 +196,7 @@ module.exports = {
     createUser: createUser,
     ReceivingUsers: ReceivingUsers,
     changeUserPassword: changeUserPassword,
+    userLogin: userLogin,
 
 };
 
