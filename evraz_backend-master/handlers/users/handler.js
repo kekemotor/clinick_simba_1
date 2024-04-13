@@ -169,6 +169,55 @@ async function userLogin(object){
 
 
 
+async function buyPills(object){
+    const funcName = 'buyPills';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400,
+    };
+    try {
+        const category_pills = object['category']
+        const name_item = object['item_name']
+        const userEmail = object['userEmail']
+        let random_code = getRandom(10000,99999).toString()
+
+
+        const check_user = await client.query(`SELECT *
+        FROM users where "userEmail" = $1`,[userEmail])
+
+        if (check_user.rows.length == 0){
+            data.message = 'Такого пользователя нет'
+        }
+
+        await client.query(`INSERT INTO sellPills ("userEmail", "randomNumber", "pillsName", "pillsCategory",)
+        VALUES ($1, $2, $3,$4`
+
+
+        [
+                userEmail,
+                random_code,
+                name_item,
+                category_pills
+
+
+            ]);
+        
+
+    }catch (err){
+        console.log(err);
+    }
+
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+
+
+}
+
+
+
 
 
 async function ReceivingUsers(){
@@ -197,6 +246,7 @@ module.exports = {
     ReceivingUsers: ReceivingUsers,
     changeUserPassword: changeUserPassword,
     userLogin: userLogin,
+    buyPills: buyPills,
 
 };
 
