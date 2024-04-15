@@ -3,20 +3,21 @@
 exports.shorthands = undefined;
 
 exports.up = pgm => {
-    pgm.createTable('sellPills', {
+    pgm.createTable('sell_pills', {
         itemId:             {
             type:       'bigserial',
             primaryKey: true,
         },
-
         userEmail:          {
             type:    'varchar(250)',
-            comment: 'Почта пользователя',
+            comment: 'Почта пользовател',
         },
+
         randomNumber:            {
             type: 'BIGINT',
             comment: 'Код покупки'
         },
+
         pillsName:            {
             type: 'varchar(250)',
             comment: 'айди таблеток'
