@@ -1,5 +1,5 @@
 <template>
-  <registretion />
+<!--  <registretion />-->
 </template>
 
 <script lang="ts" setup>

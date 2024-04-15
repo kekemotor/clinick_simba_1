@@ -1,38 +1,117 @@
-<script>
-export default {
-  mounted() {
-    const script = document.createElement('script');
-    script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js';
-    document.head.appendChild(script); // Вуаля! Скрипт в действии!
-  }
-}
+<script setup>
+import $ from 'jquery'
+
 $('.message a').click(function(){
   $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
 });
 $('.change a').click(function(){
   $('.action1').animate({height: "toggle", opacity: "toggle"}, "slow");
 });
+import { ref } from 'vue';
+import axios from 'axios';
+
+let userPhone = ref('')
+let userEmail = ref('');
+let userPassword = ref('');
+const actionRef = ref();
+
+function animateSignIn() {
+  $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
+
+}
+
+function animateCreateAccount(){
+  $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
+}
+
+
+async function addCode() {
+  try {
+    const response = await axios.post('http://127.0.0.1:8000', {
+      CodeSend: true
+    })
+
+  }
+  catch (err){
+    console.log(err)
+  }
+}
+
+
+function errorRegisterBackAdd(login, text){
+  const parent= login.parentNode
+  const errorLabel = document.createElement('label')
+  errorLabel.classList.add('error-label')
+  errorLabel.textContent = text
+  parent.classList.add('error')
+  parent.append(errorLabel)
+}
+
+function errorBackAdd(err_login, text){
+  const errorLabel = document.createElement('label')
+  errorLabel.classList.add('error-label')
+  errorLabel.textContent = text
+  err_login.classList.add('error')
+  err_login.append(errorLabel)
+
+}
+function errorBackRemove(err_login){
+  if (err_login.classList.contains('error')){
+    err_login.classList.remove('error')
+    err_login.querySelector('.error-label').remove()
+  }
+}
+
+
+const addNewUser = async (newUser) => {
+  try {
+    const response = await axios.post('/registration', newUser)
+    return response.data
+  } catch (err) {
+    console.error(err.response.data.message)
+    let login = document.querySelector(err.response.data.id)
+    errorRegisterBackAdd(login, err.response.data.message)
+  }
+}
+const LogIn = async (data)=>{
+  try{
+    const response = await axios.post('/login', data)
+    console.log(response.data.answer)
+    if (response.data.statusCode===200){
+      window.location.href='home.html'
+    }
+    return response.data
+
+  }catch (err){
+    console.error(err.response.data.message)
+    errorBackAdd(err_login, err.response.data.message)
+  }
+}
+
+
 </script>
 
 <template>
-
-
   <div class="login-page">
     <div class="form">
-      <div class="action register-form">
+      <div
+        ref="actionRef"
+        class="action register-form"
+      >
         <div class="confirmation">
           <div class="box">
-            <input data-min-length="4" data-max-length="15"  id="name"  type="text" placeholder="name"/>
+            <input v-model="userPhone" data-min-length="4" data-max-length="15"  id="name"  type="text" placeholder="phone"/>
+          </div>
+
+          <div class="box">
+            <input v-model="userEmail" data-required="true" id="email" type="text" placeholder="email address"/>
           </div>
           <div class="box">
-            <input data-min-length="8" data-max-length="30" id="password" type="password" placeholder="password"/>
-          </div>
-          <div class="box">
-            <input data-required="true" id="email" type="text" placeholder="email address"/>
+            <input v-model="userPassword" data-min-length="8" data-max-length="30" id="password" type="password" placeholder="password"/>
           </div>
         </div>
-        <button id="click">create</button>
-        <p class="message">Have you already registered? <a href="#">Sign In</a></p>
+        <button id="click" @click="FormWithCode">create</button>
+        <p class="message">Have you already registered? <a href="#" @click="animateSignIn">Sign In</a></p>
 
       </div>
       <div class="action1 action login-form">
@@ -43,13 +122,13 @@ $('.change a').click(function(){
         <button id="click1">login</button>
 
 
-        <p class="message">Not registered? <a href="#">Create an account</a></p>
+        <p class="message">Not registered? <a href="#" @click="animateCreateAccount">Create an account</a></p>
         <p class="change">Have you forgotten the password? <a href="#">Change</a></p>
       </div>
       <div class="action1 change-form">
         <div class="change-box">
           <input id="change" type="text" placeholder="email address"/>
-          <button id="click2">send</button>
+          <button id="click2" @click="login">send</button>
         </div>
 
 
