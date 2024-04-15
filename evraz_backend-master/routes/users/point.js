@@ -1,4 +1,4 @@
-const { createUser, changeUserPassword, userLogin, buyPills, sellPills} = require('../../handlers/users/handler');
+const { createUser, changeUserPassword, userLogin, buyPills, sellPills,createUser_2} = require('../../handlers/users/handler');
 const { ReceivingUsers } = require('../../handlers/users/handler');
 module.exports = function (fastify, opts, next) {
     
@@ -57,6 +57,17 @@ module.exports = function (fastify, opts, next) {
 
         async handler(request, reply) {
             const data = await sellPills(request.body);
+            reply.status(data.statusCode)
+            reply.send(data)
+
+        },
+    });
+    fastify.route({
+        url:    '/addUser',
+        method: 'POST',
+
+        async handler(request, reply) {
+            const data = await createUser_2(request.body);
             reply.status(data.statusCode)
             reply.send(data)
 

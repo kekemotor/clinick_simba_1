@@ -21,72 +21,193 @@ JWT_REFRESH_SECRET = 'jwt-service-pidr_22'
 
 
 //РЕГИСТРАЦИЯ
-async function createUser(object) {
+
+async function createUser(object){
+    const funcName = 'createUser';
+    const client = await pool.connect();
     const data = {
         message:    'error',    statusCode: 400,
     };
-    const funcName = 'createUser';
-    const client = await pool.connect();
     try {
 
-        // проверка наналичие пользователя
         const checkUser = await client.query(`SELECT *
-        FROM users
-        WHERE "userPhone" = $1 `, [object.userPhone]);
+            FROM users
+            WHERE "userPhone" = $1 `, [object.userPhone]);
         if (checkUser.rows.length>0){
-            console.log(`${funcName}: Пользователь с такой почтой уже зарегистрирован`);
-
-            data.message = 'Пользователь с такой почтой уже зарегистрирован'
+            data.message = 'Пользователь с таким телефоном уже зарегистрирован'
             return data
         }
 
+            let random_code = getRandom(10000, 99999).toString()
+            await client.query(`INSERT INTO code_verification ("phoneNumber", "userCodeVerification")
+                                VALUES ($1, $2)`,
+                [
+                    object.userPhone,
+                    random_code
+
+                ]);
+
+            data.statusCode = 200
+            data.message = 'всё отлично'
+
+            // отправка
 
 
-        // let random_code = getRandom(10000,99999).toString()
-        let random_code = 444222
-
-
-
-
-        const mailOptions = {
-            from: 'kostaykazunin@gmail.com',
-            to: object.userEmail,
-            subject: 'Clinic_simba',
-            text: 'your individual code verification => ' + random_code,
-        }
-
-        await transporter.sendMail(mailOptions,  async err => {
-            console.log(err)
-            let individual_code = object['individual_code']
-            if (random_code !== individual_code){
-                data.message = 'неправильно введён код авторизации'
-            }
-            else {
-
-                data.statusCode = 200
-                const hash_password = (md5(object['User_password']));
-                console.log(object.userPhone, object.userEmail, hash_password)
-                await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
-                                                  VALUES ($1, $2, $3)`,
-                    [
-                        object.userPhone,
-                        object.userEmail,
-                        hash_password,
-
-                    ]);
-                data.statusCode = 200
-            }
-        })
     }catch (err){
-        console.log(err)
+        console.log(err.message, err.stack);
     }
+
     finally {
         client.release();
         console.log(`${ funcName }: client release()`);
     }
-
     return data;
+
+
 }
+
+
+
+async function createUser_2(object){
+    const funcName = 'createUser_2';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400,
+    };
+    try {
+        const codeVerification = object['codeVerification']
+        const codeVer = await client.query(`SELECT * FROM code_verification where "phoneNumber" = $1`, [object.phoneNumber])
+
+        if(codeVerification !== codeVer.rows[0]['userCodeVerification']){
+            data.message = 'неправильный код варификации'
+        }
+        const hash_password = (md5(object['User_password']));
+        await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
+                                  VALUES ($1, $2, $3)`,
+            [
+                object.phoneNumber,
+                object.userEmail,
+                hash_password,
+            ]);
+        data.statusCode = 200
+        data.message = 'всё заебись'
+
+
+
+    }catch (err){
+        console.log(err.message, err.stack);
+    }
+
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+
+
+}
+
+
+
+
+
+
+// async function (){
+//     const funcName = '';
+//     const client = await pool.connect();
+//     const data = {
+//         message:    'error',    statusCode: 400,
+//     };
+//     try {
+//
+//     }catch (err){
+//         console.log(err.message, err.stack);
+//     }
+//
+//     finally {
+//         client.release();
+//         console.log(`${ funcName }: client release()`);
+//     }
+//     return data;
+//
+//
+// }
+
+
+
+
+
+
+
+
+
+
+// async function createUser(object) {
+//     const data = {
+//         message:    'error',    statusCode: 400,
+//     };
+//     const funcName = 'createUser';
+//     const client = await pool.connect();
+//     try {
+//
+//         // проверка наналичие пользователя
+//         const checkUser = await client.query(`SELECT *
+//         FROM users
+//         WHERE "userPhone" = $1 `, [object.userPhone]);
+//         if (checkUser.rows.length>0){
+//             console.log(`${funcName}: Пользователь с такой почтой уже зарегистрирован`);
+//
+//             data.message = 'Пользователь с такой почтой уже зарегистрирован'
+//             return data
+//         }
+//
+//
+//
+//         // let random_code = getRandom(10000,99999).toString()
+//         let random_code = 444222
+//
+//
+//
+//
+//         const mailOptions = {
+//             from: 'kostaykazunin@gmail.com',
+//             to: object.userEmail,
+//             subject: 'Clinic_simba',
+//             text: 'your individual code verification => ' + random_code,
+//         }
+//
+//         await transporter.sendMail(mailOptions,  async err => {
+//             console.log(err)
+//             let individual_code = object['individual_code']
+//             if (random_code !== individual_code){
+//                 data.message = 'неправильно введён код авторизации'
+//             }
+//             else {
+//
+//                 data.statusCode = 200
+//                 const hash_password = (md5(object['User_password']));
+//                 console.log(object.userPhone, object.userEmail, hash_password)
+//                 await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
+//                                                   VALUES ($1, $2, $3)`,
+//                     [
+//                         object.userPhone,
+//                         object.userEmail,
+//                         hash_password,
+//
+//                     ]);
+//                 data.statusCode = 200
+//             }
+//         })
+//     }catch (err){
+//         console.log(err)
+//     }
+//     finally {
+//         client.release();
+//         console.log(`${ funcName }: client release()`);
+//     }
+//
+//     return data;
+// }
 
 
 
@@ -207,6 +328,7 @@ async function buyPills(object){
                 object.pillsCategory
 
             ]);
+        data.message = random_code
         data.statusCode = 200
 
     }catch (err){
@@ -289,6 +411,7 @@ module.exports = {
     userLogin: userLogin,
     buyPills: buyPills,
     sellPills: sellPills,
+    createUser_2: createUser_2,
 
 };
 
