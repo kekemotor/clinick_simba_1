@@ -8,6 +8,23 @@ const fastify = require('fastify')({
 fastify.register(autoload, {
     dir: path.join(__dirname, './routes'),
 });
+const cors = require('@fastify/cors');
+
+fastify.register(require('@fastify/cors'), (instance) => {
+    return (req, callback) => {
+        const corsOptions = {
+            // This is NOT recommended for production as it enables reflection exploits
+            origin: true
+        };
+
+
+            corsOptions.origin = false
+
+
+        // callback expects two parameters: error and options
+        callback(null, corsOptions)
+    }
+})
 
 const start = async () => {
     try {

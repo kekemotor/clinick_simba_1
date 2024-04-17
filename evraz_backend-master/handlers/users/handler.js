@@ -32,17 +32,17 @@ async function createUser(object){
 
         const checkUser = await client.query(`SELECT *
             FROM users
-            WHERE "userPhone" = $1 `, [object.userPhone]);
+            WHERE "userEmail" = $1 `, [object.userEmail]);
         if (checkUser.rows.length>0){
-            data.message = 'Пользователь с таким телефоном уже зарегистрирован'
+            data.message = 'Пользователь с таким email уже зарегистрирован'
             return data
         }
 
             let random_code = getRandom(10000, 99999).toString()
-            await client.query(`INSERT INTO code_verification ("phoneNumber", "userCodeVerification")
+            await client.query(`INSERT INTO code_verification ("userEmail", "userCodeVerification")
                                 VALUES ($1, $2)`,
                 [
-                    object.userPhone,
+                    object.userEmail,
                     random_code
 
                 ]);
@@ -51,6 +51,15 @@ async function createUser(object){
             data.message = 'всё отлично'
 
             // отправка
+        const mailOptions = {
+            from: 'kostaykazunin@gmail.com',
+            to: object.userEmail,
+            subject: 'Clinic_simba',
+            text: 'your individual code verification => ' + random_code,
+        }
+
+        await transporter.sendMail(mailOptions,  async err => {
+            console.log(err)})
 
 
     }catch (err){
@@ -76,16 +85,16 @@ async function createUser_2(object){
     };
     try {
         const codeVerification = object['codeVerification']
-        const codeVer = await client.query(`SELECT * FROM code_verification where "phoneNumber" = $1`, [object.phoneNumber])
+        const codeVer = await client.query(`SELECT * FROM code_verification where "userEmail" = $1`, [object.userEmail])
 
         if(codeVerification !== codeVer.rows[0]['userCodeVerification']){
             data.message = 'неправильный код варификации'
+            await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
         }
         const hash_password = (md5(object['User_password']));
-        await client.query(`INSERT INTO users ("userPhone", "userEmail", "userHashPassword")
-                                  VALUES ($1, $2, $3)`,
+        await client.query(`INSERT INTO users ("userEmail", "userHashPassword")
+                                  VALUES ($1, $2)`,
             [
-                object.phoneNumber,
                 object.userEmail,
                 hash_password,
             ]);
