@@ -1,20 +1,18 @@
 <script setup>
 import $ from 'jquery'
-
-$('.message a').click(function(){
-  $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
-});
-$('.change a').click(function(){
-  $('.action1').animate({height: "toggle", opacity: "toggle"}, "slow");
-});
 import { ref } from 'vue';
 import axios from 'axios';
+axios.defaults.baseURL = 'http://192.168.1.224:3000/users'
 
-let userPhone = ref('')
-let userEmail = ref('');
-let userPassword = ref('');
+//data
+let userRegistrationEmail = ref('');
+let userRegistrationPassword = ref('');
+let userLoginPassword = ref('');
+let userLoginEmail = ref('');
+let userConfirmationCode = ref('');
 const actionRef = ref();
 
+//animate
 function animateSignIn() {
   $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
 
@@ -24,20 +22,17 @@ function animateCreateAccount(){
   $('.action').animate({height: "toggle", opacity: "toggle"}, "slow");
 }
 
+function animateCode() {
+  $('.action1').animate({height: "toggle", opacity: "toggle"}, "slow");
 
-async function addCode() {
-  try {
-    const response = await axios.post('http://127.0.0.1:8000', {
-      CodeSend: true
-    })
+}
 
-  }
-  catch (err){
-    console.log(err)
-  }
+function animateChangePassword(){
+  $('.action2').animate({height: "toggle", opacity: "toggle"}, "slow");
 }
 
 
+//validations
 function errorRegisterBackAdd(login, text){
   const parent= login.parentNode
   const errorLabel = document.createElement('label')
@@ -63,9 +58,31 @@ function errorBackRemove(err_login){
 }
 
 
-const addNewUser = async (newUser) => {
+//requests
+async function addCode() {
   try {
-    const response = await axios.post('/registration', newUser)
+    const response = await axios.post('/create', {
+      userEmail:userRegistrationEmail.value
+    }, {
+      mode: 'no-cors',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+      credentials: 'same-origin',
+    })
+    animateCode()
+    return response.data
+  }
+  catch (err){
+    console.log(err)
+  }
+}
+
+const addNewUser = async () => {
+  try {
+    const response = await axios.post('addUser', {userEmail:userRegistrationEmail.value,userCodeVerification:userConfirmationCode.value, userPassword:userRegistrationPassword.value})
     return response.data
   } catch (err) {
     console.error(err.response.data.message)
@@ -73,10 +90,10 @@ const addNewUser = async (newUser) => {
     errorRegisterBackAdd(login, err.response.data.message)
   }
 }
-const LogIn = async (data)=>{
+const LogIn = async ()=>{
   try{
-    const response = await axios.post('/login', data)
-    console.log(response.data.answer)
+    const response = await axios.post('/Login', {userEmail:userLoginEmail.value, userPassword:userLoginPassword.value})
+
     if (response.data.statusCode===200){
       window.location.href='home.html'
     }
@@ -96,43 +113,44 @@ const LogIn = async (data)=>{
     <div class="form">
       <div
         ref="actionRef"
-        class="action register-form"
+        class="action1 action register-form"
       >
         <div class="confirmation">
           <div class="box">
-            <input v-model="userPhone" data-min-length="4" data-max-length="15"  id="name"  type="text" placeholder="phone"/>
-          </div>
-
-          <div class="box">
-            <input v-model="userEmail" data-required="true" id="email" type="text" placeholder="email address"/>
+            <input v-model="userRegistrationEmail" data-required="true" id="email" type="email" placeholder="email address"/>
           </div>
           <div class="box">
-            <input v-model="userPassword" data-min-length="8" data-max-length="30" id="password" type="password" placeholder="password"/>
+            <input v-model="userRegistrationPassword" data-min-length="8" data-max-length="30" id="password" type="password" placeholder="password"/>
           </div>
         </div>
-        <button id="click" @click="FormWithCode">create</button>
+        <button id="click" @click="addCode">create</button>
         <p class="message">Have you already registered? <a href="#" @click="animateSignIn">Sign In</a></p>
 
       </div>
-      <div class="action1 action login-form">
+      <div class="action2 action login-form">
         <div class="box_login">
-          <input id="username" type="text" placeholder="username"/>
-          <input id="password1" type="password" placeholder="password"/>
+          <input v-model="userLoginEmail" type="email" placeholder="Email"/>
+          <input v-model="userLoginPassword" type="password" placeholder="password"/>
         </div>
-        <button id="click1">login</button>
+        <button id="click1" @click="LogIn">login</button>
 
 
         <p class="message">Not registered? <a href="#" @click="animateCreateAccount">Create an account</a></p>
-        <p class="change">Have you forgotten the password? <a href="#">Change</a></p>
+        <p class="change">Have you forgotten the password? <a href="#" @click="animateChangePassword">Change</a></p>
       </div>
       <div class="action1 change-form">
         <div class="change-box">
-          <input id="change" type="text" placeholder="email address"/>
-          <button id="click2" @click="login">send</button>
+          <input v-model="userConfirmationCode" id="change" type="number" placeholder="code"/>
+          <button id="click2" @click="addNewUser">send</button>
         </div>
 
-
-        <p class="change">Have you forgotten the password? <a href="#">Back</a></p>
+      </div>
+      <div class="action2 change-form">
+        <div class="change-box">
+          <input v-model="userConfirmationCode" id="change" type="number" placeholder="code"/>
+          <button id="click2" @click="addNewUser">send</button>
+        </div>
+        <p class="change">Have you forgotten the password? <a href="#" @click="animateChangePassword">Change</a></p>
       </div>
     </div>
   </div>
