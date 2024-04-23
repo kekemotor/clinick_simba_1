@@ -300,58 +300,58 @@ async function userLogin(object){
 
 //ФУНКЦИЯ ДЛЯ ЗАНЕСЕНИЯ ИНФОРМАЦИИ О ПОКУПКЕ В БД
 
-async function buyPills(object){
-    const funcName = 'buyPills';
-    const client = await pool.connect();
-    const data = {
-        message:    'error',    statusCode: 400,
-    };
-    try {
-        let random_code = getRandom(10000,99999).toString()
-        const check_user = await client.query(`SELECT *
-        FROM users where "userEmail" = $1`,[object['userEmail']])
-
-        if (check_user.rows.length == 0){
-            data.message = 'Такого пользователя нет'
-        }
-        console.log(check_user.rows)
-        console.log(check_user.rows.length)
-        console.log(object.pillsName)
-
-        // await client.query(`INSERT INTO sell_pills ("userEmail", "randomNumber", "pillsName", "pillsCategory")
-        // VALUES ($1, $2, $3,$4)`
-        //
-        //
-        //     [
-        //         object.userEmail,
-        //         random_code,
-        //         object.pillsName,
-        //         object.pillsCategory
-        //     ]);
-        await client.query(`INSERT INTO sell_pills ("userEmail", "randomNumber", "pillsName", "pillsCategory")
-                                                  VALUES ($1, $2, $3, $4)`,
-            [
-                object.userEmail,
-                random_code,
-                object.pillsName,
-                object.pillsCategory
-
-            ]);
-        data.message = random_code
-        data.statusCode = 200
-
-    }catch (err){
-        console.log(err);
-    }
-
-    finally {
-        client.release();
-        console.log(`${ funcName }: client release()`);
-    }
-    return data;
-
-
-}
+// async function buyPills(object){
+//     const funcName = 'buyPills';
+//     const client = await pool.connect();
+//     const data = {
+//         message:    'error',    statusCode: 400,
+//     };
+//     try {
+//         let random_code = getRandom(10000,99999).toString()
+//         const check_user = await client.query(`SELECT *
+//         FROM users where "userEmail" = $1`,[object['userEmail']])
+//
+//         if (check_user.rows.length == 0){
+//             data.message = 'Такого пользователя нет'
+//         }
+//         console.log(check_user.rows)
+//         console.log(check_user.rows.length)
+//         console.log(object.pillsName)
+//
+//         // await client.query(`INSERT INTO sell_pills ("userEmail", "randomNumber", "pillsName", "pillsCategory")
+//         // VALUES ($1, $2, $3,$4)`
+//         //
+//         //
+//         //     [
+//         //         object.userEmail,
+//         //         random_code,
+//         //         object.pillsName,
+//         //         object.pillsCategory
+//         //     ]);
+//         await client.query(`INSERT INTO sell_pills ("userEmail", "randomNumber", "pillsName", "pillsCategory")
+//                                                   VALUES ($1, $2, $3, $4)`,
+//             [
+//                 object.userEmail,
+//                 random_code,
+//                 object.pillsName,
+//                 object.pillsCategory
+//
+//             ]);
+//         data.message = random_code
+//         data.statusCode = 200
+//
+//     }catch (err){
+//         console.log(err);
+//     }
+//
+//     finally {
+//         client.release();
+//         console.log(`${ funcName }: client release()`);
+//     }
+//     return data;
+//
+//
+// }
 
 
 
@@ -418,8 +418,6 @@ module.exports = {
     ReceivingUsers: ReceivingUsers,
     changeUserPassword: changeUserPassword,
     userLogin: userLogin,
-    buyPills: buyPills,
-    sellPills: sellPills,
     createUser_2: createUser_2,
 
 };
