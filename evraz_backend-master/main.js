@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const autoload = require('@fastify/autoload');
 const path = require('path');
 const fastify = require('fastify')({
@@ -8,22 +7,20 @@ const fastify = require('fastify')({
 fastify.register(autoload, {
     dir: path.join(__dirname, './routes'),
 });
-const cors = require('@fastify/cors');
 
-fastify.register(require('@fastify/cors'), (instance) => {
-    return (req, callback) => {
-        const corsOptions = {
-            // This is NOT recommended for production as it enables reflection exploits
-            origin: true
-        };
-
-
-            corsOptions.origin = false
-
-
-        // callback expects two parameters: error and options
-        callback(null, corsOptions)
-    }
+fastify.register(require('@fastify/cors'), {
+    // return (req, callback) => {
+    //     const corsOptions = {
+    //         // This is NOT recommended for production as it enables reflection exploits
+    //         origin: true
+    //     };
+    //     corsOptions.origin = false
+    //
+    //     // callback expects two parameters: error and options
+    //     callback(null, corsOptions)
+    // }
+    origin: `${process.env.API_CLIENT_URL}`,
+    methods:['GET',"POST","PUT","DELETE"]
 })
 
 const start = async () => {

@@ -84,14 +84,14 @@ async function createUser_2(object){
         message:    'error',    statusCode: 400,
     };
     try {
-        const codeVerification = object['codeVerification']
+        const codeVerification = object['userCodeVerification']
         const codeVer = await client.query(`SELECT * FROM code_verification where "userEmail" = $1`, [object.userEmail])
 
         if(codeVerification !== codeVer.rows[0]['userCodeVerification']){
             data.message = 'неправильный код варификации'
             await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
         }
-        const hash_password = (md5(object['User_password']));
+        const hash_password = (md5(object['userPassword']));
         await client.query(`INSERT INTO users ("userEmail", "userHashPassword")
                                   VALUES ($1, $2)`,
             [
