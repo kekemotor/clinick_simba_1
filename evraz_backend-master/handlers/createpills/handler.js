@@ -18,6 +18,7 @@ async function addInDB(object){
                 object.quantity,
                 object.category
             ]);
+        data.statusCode =200
     }catch (err){
         console.log(err.message, err.stack);
     }
@@ -53,10 +54,44 @@ async function changeCount(object){
     const funcName = 'changeCount';
     const client = await pool.connect();
     const data = {
-        message:    'error',    statusCode: 400,
+        message:    'error',    statusCode: 400, quantity: 0, name: 'infinite'
     };
     try {
-        await client.query('UPDATE item_pills_bd SET "quantity" = $1 where "name" = $2', [object.quantity, object.name])
+        const addInfo = object['addCount']
+        const getInfo = await client.query(`SELECT "quantity" FROM item_pills_bd where  "name" = $1`, [object.name])
+        const get = Number(getInfo.rows[0]["quantity"])
+        const newCount = get - addInfo
+        await client.query('UPDATE item_pills_bd SET "quantity" = $1 where "name" = $2', [newCount, object.name])
+        data.message = 'all_good'
+        data.name = object.name
+        data.quantity = newCount
+        data.statusCode = 200
+    }catch (err){
+        console.log(err.message, err.stack);
+    }
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+}
+
+async function backCount(object){
+    const funcName = 'backCount';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400, quantity: 0, name: 'infinite'
+    };
+    try {
+        const backInfo = object['backCount']
+        const getInfo = await client.query(`SELECT "quantity" FROM item_pills_bd where  "name" = $1`, [object.name])
+        const get = Number(getInfo.rows[0]["quantity"])
+        const newCount = get + backInfo
+        await  client.query('UPDATE item_pills_bd SET "quantity" = $1 where "name" = $2', [newCount, object.name])
+        data.message = 'all_good'
+        data.name = object.name
+        data.quantity = newCount
+        data.statusCode = 200
     }catch (err){
         console.log(err.message, err.stack);
     }
@@ -68,9 +103,8 @@ async function changeCount(object){
 }
 
 
-
 async function backInfoAway(object){
-    const funcName = 'changeCount';
+    const funcName = 'backInfoAway';
     const client = await pool.connect();
     const data = {
         message:    'error',    statusCode: 400,
@@ -82,8 +116,8 @@ async function backInfoAway(object){
             data.message = 'our rows = 0'
         }
         data.message = allInfo.rows
-        data.statusCode = 200
-    }catch (err){
+        data.statusCode = 200`
+    }catch (err){`
         console.log(err.message, err.stack);
     }
     finally {
@@ -101,5 +135,6 @@ module.exports = {
     deletpills: deletpills,
     changeCount: changeCount,
     backInfoAway: backInfoAway,
+    backCount: backCount
 
 };
