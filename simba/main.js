@@ -5,7 +5,7 @@ $('.change a').click(function(){
     $('.action1').animate({height: "toggle", opacity: "toggle"}, "slow");
 });
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000'
+// axios.defaults.baseURL = 'http://127.0.0.1:8000'
 let botton = document.querySelector('#click')
 let botton1 = document.querySelector('#click1')
 let err = document.querySelector('.register-form')

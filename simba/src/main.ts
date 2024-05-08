@@ -12,9 +12,12 @@ import App from './App.vue'
 
 // Composables
 import { createApp } from 'vue'
+import axios from 'axios'
 
 const app = createApp(App)
 
+axios.defaults.baseURL = 'http://192.168.1.230:3000'
+
 registerPlugins(app)
 
-app.mount('#app')
+app.use(axios).mount('#app')

@@ -2,7 +2,7 @@
 import $ from 'jquery'
 import { ref } from 'vue';
 import axios from 'axios';
-axios.defaults.baseURL = 'http://192.168.1.224:3000/users'
+// axios.defaults.baseURL = 'http://192.168.1.230:3000/users'
 
 //data
 let userRegistrationEmail = ref('');
@@ -61,17 +61,12 @@ function errorBackRemove(err_login){
 //requests
 async function addCode() {
   try {
-    const response = await axios.post('/create', {
-      userEmail:userRegistrationEmail.value
-    }, {
-      mode: 'no-cors',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      withCredentials: true,
-      credentials: 'same-origin',
-    })
+    const response = await axios.post(
+      '/users/create',
+      {
+          userEmail: userRegistrationEmail.value
+      })
+    console.log(response)
     animateCode()
     return response.data
   }
@@ -83,7 +78,7 @@ async function addCode() {
 
 const addNewUser = async () => {
   try {
-    const response = await axios.post('addUser', {userEmail:userRegistrationEmail.value,userCodeVerification:userConfirmationCode.value, userPassword:userRegistrationPassword.value})
+    const response = await axios.post('/users/addUser', {userEmail:userRegistrationEmail.value,userCodeVerification:userConfirmationCode.value, userPassword:userRegistrationPassword.value})
     return response.data
   } catch (err) {
     console.error(err.response.data.message)
@@ -93,7 +88,7 @@ const addNewUser = async () => {
 }
 const LogIn = async ()=>{
   try{
-    const response = await axios.post('/Login', {userEmail:userLoginEmail.value, userPassword:userLoginPassword.value})
+    const response = await axios.post('/users/Login', {userEmail:userLoginEmail.value, userPassword:userLoginPassword.value})
 
     if (response.data.statusCode===200){
       window.location.href='home.html'
