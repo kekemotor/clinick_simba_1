@@ -21,7 +21,7 @@ async function addInBasket(object){
         message:    'error',    statusCode: 400,
     };
     try {
-        await client.query(`INSERT INTO basket_for_users ("userEmail", "quantity","name", "category" ,"place")
+        await client.query(`INSERT INTO basket_for_users ("userEmail", "quantity","idItems" ,"place")
                                   VALUES ($1, $2, $3, $4, $5)`,
             [
                 object.userEmail,
@@ -53,7 +53,7 @@ async function backInfoInBasket(object){
         message:    'error',    statusCode: 400,
     };
     try {
-
+        const backUsers = await client.query(`SELECT * FROM basket_for_users where `)
     }catch (err){
         console.log(err.message, err.stack);
     }
@@ -86,6 +86,7 @@ async function deleteTable(){
 
 
 }
+
 
 module.exports = {
     addInBasket:addInBasket,
