@@ -3,6 +3,13 @@ const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
 
+
+const jwt = require('jsonwebtoken')
+
+
+
+
+
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
 }
@@ -14,9 +21,8 @@ const transporter =  nodemailer.createTransport({
     }
 })
 
-const jwt = require('jsonwebtoken')
-JWT_ACCESS_SECRET = 'jwt-service-negr_1'
-JWT_REFRESH_SECRET = 'jwt-service-pidr_22'
+
+
 
 
 
@@ -92,11 +98,27 @@ async function createUser_2(object){
             await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
         }
         const hash_password = (md5(object['userPassword']));
-        await client.query(`INSERT INTO users ("userEmail", "userHashPassword")
-                                  VALUES ($1, $2)`,
+
+
+        const payload = {
+            userEmail: [object.userEmail]
+        }
+        const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '30m'})
+        const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
+
+        const checkToken = await client.query(`SELECT 'userToken' FROM users where userEmail = $1`, [object.userEmail])
+        if (checkToken.rows.length>0){
+            await client.query('UPDATE users SET "userToken" = $1 where "userEmail" = $2', [accessToken, object.userEmail])
+            data.message = 'токен был перезаписан'
+            data.statusCode = 200
+
+        }
+        await client.query(`INSERT INTO users ("userEmail", "userHashPassword","userToken")
+                                  VALUES ($1, $2, $3)`,
             [
                 object.userEmail,
                 hash_password,
+                accessToken
             ]);
         data.statusCode = 200
         data.message = 'всё заебись'

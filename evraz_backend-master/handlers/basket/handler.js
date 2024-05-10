@@ -50,10 +50,19 @@ async function backInfoInBasket(object){
     const funcName = 'backInfoInBasket';
     const client = await pool.connect();
     const data = {
-        message:    'error',    statusCode: 400,
+        message:    'error',    statusCode: 400, allInfo: ''
     };
     try {
-        const backUsers = await client.query(`SELECT * FROM basket_for_users where `)
+        const backUsers = await client.query(`SELECT * FROM basket_for_users where "userToken" = $1 `, [object.userToken])
+        const checkToken = backUsers.rows[0]['userToken']
+
+        if (backUsers ===0){
+            data.message = 'не нашёл такой токен'
+
+        }
+        data.allInfo = backUsers.rows
+        data.message = 'all good'
+        data.statusCode = 200
     }catch (err){
         console.log(err.message, err.stack);
     }
@@ -66,14 +75,22 @@ async function backInfoInBasket(object){
 
 
  }
-async function deleteTable(){
+async function deleteTable(object){
     const funcName = 'deleteTable';
     const client = await pool.connect();
     const data = {
         message:    'error',    statusCode: 400,
     };
     try {
+        await client.query(`DELETE FROM basket_for_users where "userToken" = $1`,[object.userToken])
+        const checkDelete = await client.query(`SELECT * FROM basket_for_users where "userToken" = $1`,[object.userToken])
 
+
+        if (checkDelete >0){
+            data.message = 'не удалилось(((('
+        }
+        data.statusCode =200
+        data.message = 'всё отлично'
     }catch (err){
         console.log(err.message, err.stack);
     }
