@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs')
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
-
+jwt = require('jsonwebtoken');
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
 }
@@ -21,16 +21,25 @@ async function addInBasket(object){
         message:    'error',    statusCode: 400,
     };
     try {
-        await client.query(`INSERT INTO basket_for_users ("userEmail", "quantity","idItems" ,"place")
+        const token = object['userToken']
+        let userToken = jwt.decode(token)
+
+
+        const getUser = await client.query(`SELECT * FROM users WHERE 'userEmail' = $1`, [userToken['userEmail'][0]])
+        if (getUser.rows.length ===0){
+            data.message = 'не нашёл пользователя с таким токеном'
+        }
+
+        await client.query(`INSERT INTO basket_for_users ("userId","userEmail", "quantity","idItems" ,"place", "userToken")
                                   VALUES ($1, $2, $3, $4, $5)`,
             [
-                object.userEmail,
+                getUser.rows[0]['userId'],
+                getUser.rows[0]['userEmail'],
                 object.quantity,
-                object.name,
-                object.category,
+                object.idItems,
                 object.place
             ]);
-        const checkAddInfo = await client.query(`SELECT * FROM basket_for_users WHERE "userEmail" = $1`, [object.userEmail])
+        const checkAddInfo = await client.query(`SELECT * FROM basket_for_users WHERE "userToken" = $1`, [userToken['userEmail'][0]])
         if (checkAddInfo.rows.length === 0 ){
             data.message = 'данные не были добавлены в табличку, попробуйте позже'
         }
@@ -46,35 +55,35 @@ async function addInBasket(object){
     }
     return data;
 }
-async function backInfoInBasket(object){
-    const funcName = 'backInfoInBasket';
-    const client = await pool.connect();
-    const data = {
-        message:    'error',    statusCode: 400, allInfo: ''
-    };
-    try {
-        const backUsers = await client.query(`SELECT * FROM basket_for_users where "userToken" = $1 `, [object.userToken])
-        const checkToken = backUsers.rows[0]['userToken']
-
-        if (backUsers ===0){
-            data.message = 'не нашёл такой токен'
-
-        }
-        data.allInfo = backUsers.rows
-        data.message = 'all good'
-        data.statusCode = 200
-    }catch (err){
-        console.log(err.message, err.stack);
-    }
-
-    finally {
-        client.release();
-        console.log(`${ funcName }: client release()`);
-    }
-    return data;
-
-
- }
+// async function backInfoInBasket(object){
+//     const funcName = 'backInfoInBasket';
+//     const client = await pool.connect();
+//     const data = {
+//         message:    'error',    statusCode: 400, allInfo: ''
+//     };
+//     try {
+//         const backUsers = await client.query(`SELECT * FROM basket_for_users where "userToken" = $1 `, [object.userToken])
+//
+//
+//         if (backUsers ===0){
+//             data.message = 'не нашёл такой токен'
+//
+//         }
+//         data.allInfo = backUsers.rows
+//         data.message = 'all good'
+//         data.statusCode = 200
+//     }catch (err){
+//         console.log(err.message, err.stack);
+//     }
+//
+//     finally {
+//         client.release();
+//         console.log(`${ funcName }: client release()`);
+//     }
+//     return data;
+//
+//
+//  }
 async function deleteTable(object){
     const funcName = 'deleteTable';
     const client = await pool.connect();

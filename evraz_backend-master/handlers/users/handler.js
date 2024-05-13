@@ -3,12 +3,7 @@ const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
 
-
 const jwt = require('jsonwebtoken')
-
-
-
-
 
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
@@ -20,11 +15,6 @@ const transporter =  nodemailer.createTransport({
         pass: 'suzeiputsxgounwu'
     }
 })
-
-
-
-
-
 
 //РЕГИСТРАЦИЯ
 
@@ -87,41 +77,43 @@ async function createUser_2(object){
     const funcName = 'createUser_2';
     const client = await pool.connect();
     const data = {
-        message:    'error',    statusCode: 400,
+        message:    'error',    statusCode: 400, accessToken: 'none',user: 'none'
     };
     try {
+
         const codeVerification = object['userCodeVerification']
         const codeVer = await client.query(`SELECT * FROM code_verification where "userEmail" = $1`, [object.userEmail])
 
-        if(codeVerification !== codeVer.rows[0]['userCodeVerification']){
+        if(Number(codeVerification) !== Number(codeVer.rows[0]['userCodeVerification'])){
             data.message = 'неправильный код варификации'
+            console.log('all badasddddddddddddddddddddddddddddddddddddddddddd')
             await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
         }
-        const hash_password = (md5(object['userPassword']));
+        else {
+            console.log('huy')
+            const hash_password = (md5(object['userPassword']));
 
 
-        const payload = {
-            userEmail: [object.userEmail]
-        }
-        const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '30m'})
-        const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
-
-        const checkToken = await client.query(`SELECT 'userToken' FROM users where userEmail = $1`, [object.userEmail])
-        if (checkToken.rows.length>0){
-            await client.query('UPDATE users SET "userToken" = $1 where "userEmail" = $2', [accessToken, object.userEmail])
-            data.message = 'токен был перезаписан'
+            const payload = {
+                userEmail: [object.userEmail]
+            }
+            const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '1m'})
+            // const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
+            console.log(jwt.decode(accessToken))
+            await client.query(`INSERT INTO users ("userEmail", "userHashPassword")
+                                VALUES ($1, $2)`,
+                [
+                    object.userEmail,
+                    hash_password
+                ]);
+            data.user = object.userEmail
             data.statusCode = 200
-
+            data.message = 'пользователь был добавлен в бд'
+            data.accessToken = accessToken
         }
-        await client.query(`INSERT INTO users ("userEmail", "userHashPassword","userToken")
-                                  VALUES ($1, $2, $3)`,
-            [
-                object.userEmail,
-                hash_password,
-                accessToken
-            ]);
-        data.statusCode = 200
-        data.message = 'всё заебись'
+
+
+        // checkId.rows[0]["userId"]
 
 
 
@@ -138,6 +130,83 @@ async function createUser_2(object){
 
 }
 
+
+
+
+
+
+
+
+
+// async function createUser_2(object){
+//     const funcName = 'createUser_2';
+//     const client = await pool.connect();
+//     const data = {
+//         message:    'error',    statusCode: 400, refreshToken: '', accessToken: '',user: ''
+//     };
+//     try {
+//
+//         const codeVerification = object['userCodeVerification']
+//         const codeVer = await client.query(`SELECT * FROM code_verification where "userEmail" = $1`, [object.userEmail])
+//
+//         if(codeVerification !== codeVer.rows[0]['userCodeVerification']){
+//             data.message = 'неправильный код варификации'
+//             console.log('неправильный код варификации')
+//             await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
+//         }
+//
+//         console.log('Код был введён верно')
+//         const hash_password = (md5(object['userPassword']));
+//         console.log(hash_password)
+//         const payload = {
+//             userEmail: [object.userEmail]
+//         }
+//         const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '30m'})
+//         const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
+//         console.log(accessToken)
+//         console.log(refreshToken)
+//         const checkToken = await client.query(`SELECT * FROM users where userEmail = $1`, [object.userEmail])
+//         if (checkToken.rows[0]['userToken'].length>0){
+//             await client.query('UPDATE users SET "userToken" = $1 where "userEmail" = $2', [accessToken, object.userEmail])
+//             console.log(123)
+//             data.message = 'токен был перезаписан, пользователь уже создан'
+//             data.statusCode = 200
+//             data.refreshToken = refreshToken
+//             data.accessToken = accessToken
+//             data.user = checkToken.rows[0]
+//
+//         }
+//         await client.query(`INSERT INTO users ("userEmail", "userHashPassword","userToken")
+//                                   VALUES ($1, $2, $3)`,
+//             [
+//                 object.userEmail,
+//                 hash_password,
+//                 accessToken
+//             ]);
+//         const checkId = await client.query(`SELECT "userId" FROM users where "userEmail" = $1`, [object.userEmail])
+//         console.log(321)
+//         data.statusCode = 200
+//         data.message = 'всё заебись'
+//         data.refreshToken = refreshToken
+//         data.accessToken = accessToken
+//         data.user = object.userEmail
+//                     // checkId.rows[0]["userId"]
+//
+//
+//
+//     }catch (err){
+//         console.log(err.message, err.stack);
+//     }
+//
+//     finally {
+//         client.release();
+//         console.log(`${ funcName }: client release()`);
+//     }
+//     return data;
+//
+//
+// }
+//
 
 
 
