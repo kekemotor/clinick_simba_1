@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs')
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
-jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
 }
@@ -23,8 +24,6 @@ async function addInBasket(object){
     try {
         const token = object['userToken']
         let userToken = jwt.decode(token)
-
-
         const getUser = await client.query(`SELECT * FROM users WHERE 'userEmail' = $1`, [userToken['userEmail'][0]])
         if (getUser.rows.length ===0){
             data.message = 'не нашёл пользователя с таким токеном'
@@ -91,8 +90,11 @@ async function deleteTable(object){
         message:    'error',    statusCode: 400,
     };
     try {
-        await client.query(`DELETE FROM basket_for_users where "userToken" = $1`,[object.userToken])
-        const checkDelete = await client.query(`SELECT * FROM basket_for_users where "userToken" = $1`,[object.userToken])
+        const Token = object["userToken"]
+        let decodeToken =jwt.decode(Token)
+        let Email =decodeToken['userEmail'][0]
+        await client.query(`DELETE FROM basket_for_users where "userEmail" = $1`,[Email])
+        const checkDelete = await client.query(`SELECT * FROM basket_for_users where "userEmail" = $1`,[Email])
 
 
         if (checkDelete >0){
@@ -117,6 +119,5 @@ async function deleteTable(object){
 module.exports = {
     addInBasket:addInBasket,
     deleteTable:deleteTable,
-    backInfoInBasket:backInfoInBasket
 
 };

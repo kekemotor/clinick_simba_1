@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
+const jwt = require("jsonwebtoken");
 
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
@@ -19,8 +20,11 @@ async function buyPills(object){
     };
     try {
         let random_code = getRandom(10000,99999).toString()
+        const Token = object["userToken"]
+        let decodeToken =jwt.decode(Token)
+        let Email =decodeToken['userEmail'][0]
         const check_user = await client.query(`SELECT *
-        FROM users where "userEmail" = $1`,[object['userEmail']])
+        FROM users where "userEmail" = $1`,[Email])
 
         if (check_user.rows.length == 0){
             data.message = 'Такого пользователя нет'
