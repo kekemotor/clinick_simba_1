@@ -134,6 +134,7 @@ async function PostInfo(object) {
         data.newAccessToken = accessToken
         data.newRefreshToken = refreshToken
         data.message = 'tokenWasRefresh'
+        data.statusCode = 201
 
     }
 finally
@@ -155,7 +156,7 @@ async function messageInfo(object) {
         minutes: ""
     }]
     const data = {
-        message: 'error', statusCode: 400, dateWait: []
+        message: 'error', statusCode: 400, dateWait: [], newAccessToken: 'none', newRefreshToken:  'none'
     };
     try {
 
@@ -207,6 +208,28 @@ async function messageInfo(object) {
         data.message = check.rows  +   '            '   + now
     } catch (err) {
         console.log(err.message, err.stack);
+
+
+
+        const token = ['refreshToken']
+        let refresh = jwt.decode(token)
+        refresh = refresh['userEmail'][0]
+
+        await client.query(`SELECT * FROM scheduled where "userEmail" = $1`, [refresh])
+        if (refresh.rows.length == 0) {
+            data.statusCode = 403
+            data.message = 'tokenDEAD'
+        }
+        payload = {
+            userEmail: refresh
+        }
+        const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '10m'})
+        const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
+        data.newAccessToken = accessToken
+        data.newRefreshToken = refreshToken
+        data.message = 'tokenWasRefresh'
+        data.statusCode = 201
+
     }
 
 
