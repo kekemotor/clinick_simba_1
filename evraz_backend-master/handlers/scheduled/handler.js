@@ -133,6 +133,8 @@ async function PostInfo(object) {
         const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
         data.newAccessToken = accessToken
         data.newRefreshToken = refreshToken
+        data.message = 'tokenWasRefresh'
+
     }
 finally
 {
