@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs')
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
 const md5 = require('md5');
-
+//jwt.verify(as,JWT_ACCESS_SECRET)
 const jwt = require('jsonwebtoken')
 
 function getRandom(min,max){

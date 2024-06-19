@@ -6,7 +6,7 @@ module.exports = function (fastify, opts, next) {
 
     fastify.addHook('preHandler', async (request, reply) => {
         try {
-            const data = jwt.verify(request.headers.access, process.env.JWT_ACCESS_SECRET)
+            const data = jwt.verify(request.headers.refresh, process.env.JWT_REFRESH_SECRET)
             request.info = data.userEmail
         }
         catch (e) {

@@ -1,9 +1,6 @@
-const bcrypt = require('bcryptjs')
+
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
-const md5 = require('md5');
-const {decode} = require("jsonwebtoken");
-const passwordForSurgery = "Ghsjasd12353476"
 const jwt = require('jsonwebtoken')
 function getRandom(min,max){
     return Math.floor(Math.random()*(max-min))+min
@@ -122,7 +119,7 @@ async function PostInfo(object) {
         refresh = refresh['userEmail'][0]
 
         await client.query(`SELECT * FROM scheduled where "userEmail" = $1`, [refresh])
-        if (refresh.rows.length == 0) {
+        if (Number(refresh.rows.length) == 0) {
             data.statusCode = 403
             data.message = 'tokenDEAD'
         }
