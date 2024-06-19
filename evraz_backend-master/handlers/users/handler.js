@@ -77,7 +77,7 @@ async function createUser_2(object){
     const funcName = 'createUser_2';
     const client = await pool.connect();
     const data = {
-        message:    'error',    statusCode: 400, accessToken: 'none',user: 'none', refreshToken: 'none'
+        message:    'error',    statusCode: 400, accessToken: 'none',userEmail: 'none', refreshToken: 'none'
     };
     try {
 
@@ -90,6 +90,7 @@ async function createUser_2(object){
             await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
         }
         else {
+            await client.query(`DELETE FROM code_verification where "userEmail" = $1`,[object.userEmail])
             console.log('huy')
             const hash_password = (md5(object['userPassword']));
 
@@ -106,7 +107,7 @@ async function createUser_2(object){
                     object.userEmail,
                     hash_password
                 ]);
-            data.user = object.userEmail
+            data.userEmail = object.userEmail
             data.statusCode = 200
             data.message = 'пользователь был добавлен в бд'
             data.accessToken = accessToken

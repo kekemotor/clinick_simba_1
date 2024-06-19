@@ -9,18 +9,18 @@ fastify.register(autoload, {
 });
 
 fastify.register(require('@fastify/cors'), {
-    // return (req, callback) => {
-    //     const corsOptions = {
-    //         // This is NOT recommended for production as it enables reflection exploits
-    //         origin: true
-    //     };
-    //     corsOptions.origin = false
-    //
-    //     // callback expects two parameters: error and options
-    //     callback(null, corsOptions)
-    // }
-    origin: `${process.env.API_CLIENT_URL}`,
-    methods:['GET',"POST","PUT","DELETE"]
+    return (req, callback)  {
+        const corsOptions = {
+            // This is NOT recommended for production as it enables reflection exploits
+            origin: true
+        };
+        corsOptions.origin = false
+
+        // callback expects two parameters: error and options
+        callback(null, corsOptions)
+    }
+    // origin: `${process.env.API_CLIENT_URL}`,
+    // methods:['GET',"POST","PUT","DELETE"]
 })
 
 const start = async () => {
