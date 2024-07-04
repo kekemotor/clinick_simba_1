@@ -1,3 +1,44 @@
+*{
+
+    margin:0;
+    padding: 0;
+    box-sizing:border-box;
+    text-decoration: none;
+
+    outline: none;
+    border: none;
+    transition: 0.2s linear;
+}
+
+html{
+    font-size: 62.2%;
+    overflow-x: hidden;
+    scroll-padding-top: 9rem;
+    scroll-behavior: smooth;
+}
+
+body{
+    font-size: 1.6rem;
+}
+
+/* global classes */
+
+section{
+    padding: 5rem 7%;
+}
+
+.heading{
+    font-size: 4rem;
+    text-align: center;
+    color: var(--black);
+    text-transform: uppercase;
+    font-weight: bolder;
+    margin-bottom: 3rem;
+}
+
+
+
+
 .start-header {
     opacity: 1;
     transform: translateY(0);
@@ -170,7 +211,7 @@
 
 
 .footer{
-    /*background: url(../images/footer-bg.jpg) no-repeat;*/
+    background-color: #ece9e9;
     background-size: cover;
     background-position: center;
 }
