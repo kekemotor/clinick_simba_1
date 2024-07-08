@@ -1,7 +1,25 @@
-const bcrypt = require('bcryptjs')
+async function refreshToken(token) {
+
+    let refresh = jwt.decode(token)
+    refresh = refresh['userEmail'][0]
+
+    await client.query(`SELECT * FROM scheduled where "userEmail" = $1`, [refresh])
+    if (Number(refresh.rows.length) == 0) {
+        data.statusCode = 403
+        data.message = 'tokenDEAD'
+    }
+    payload = {
+        userEmail: refresh
+    }
+    const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '10m'})
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
+    data.newAccessToken = accessToken
+    data.newRefreshToken = refreshToken
+    data.message = 'tokenWasRefresh'
+    data.statusCode = 201
+}
 const { pool } = require('../../dependencies');
 const nodemailer = require('nodemailer')
-const md5 = require('md5');
 const jwt = require("jsonwebtoken");
 
 function getRandom(min,max){
@@ -114,10 +132,42 @@ async function deleteTable(object){
 
 
 }
+async function deleteObjectIntTable(object){
+    const funcName = 'deleteObjectIntTable';
+    const client = await pool.connect();
+    const data = {
+        message:    'error',    statusCode: 400,
+    };
+    try {
+        const Token = object["userToken"]
+        let decodeToken =jwt.decode(Token)
+        let Email =decodeToken['userEmail'][0]
+        await client.query(`DELETE FROM basket_for_users where "userEmail" = $1 and "idItems" = $2`,[Email, object['idItems']])
+        const checkDelete = await client.query(`SELECT * FROM basket_for_users where "userEmail" = $1 and "idItems" = $2`,[Email, object['idItems']])
+
+
+        if (checkDelete >0){
+            data.message = 'не удалилось(((('
+        }
+        data.statusCode =200
+        data.message = 'всё отлично'
+    }catch (err){
+        console.log(err.message, err.stack);
+    }
+
+    finally {
+        client.release();
+        console.log(`${ funcName }: client release()`);
+    }
+    return data;
+
+
+}
 
 
 module.exports = {
     addInBasket:addInBasket,
     deleteTable:deleteTable,
+    deleteObjectIntTable:deleteObjectIntTable
 
 };
