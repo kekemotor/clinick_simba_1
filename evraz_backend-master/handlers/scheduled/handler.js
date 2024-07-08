@@ -94,7 +94,7 @@ async function PostInfo(object) {
             Email
         ])
         let dataScheduled = check.rows[0]['time']
-        let now = new Data()
+        let now = new Date()
         let mass = [{
             year: "",
             month: "",
@@ -165,7 +165,7 @@ async function messageInfo(object) {
                                           FROM scheduled
                                           where userEmail = $1`, [Email])
         let dataScheduled = check.rows[0]['time']
-        let now = new Data()
+        let now = new Date()
         if (check.rows.length === 0) {
             data.message = 'don`t found'
         }

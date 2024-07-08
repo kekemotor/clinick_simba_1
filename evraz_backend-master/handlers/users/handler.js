@@ -101,11 +101,12 @@ async function createUser_2(object){
             const accessToken = jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {expiresIn: '30m'})
             const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {expiresIn: '30d'})
             console.log(jwt.decode(accessToken))
-            await client.query(`INSERT INTO users ("userEmail", "userHashPassword")
+            await client.query(`INSERT INTO users ("userEmail", "userHashPassword","userToken")
                                 VALUES ($1, $2)`,
                 [
                     object.userEmail,
-                    hash_password
+                    hash_password,
+                    refreshToken
                 ]);
             data.userEmail = object.userEmail
             data.statusCode = 200
