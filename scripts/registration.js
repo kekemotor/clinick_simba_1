@@ -19,6 +19,7 @@ function errorRegisterBackAdd(login, text){
     const parent= login.parentNode
     const errorLabel = document.createElement('label')
     errorLabel.classList.add('error-label')
+    console.log(text , errorLabel)
     errorLabel.textContent = text
     parent.classList.add('error')
     parent.append(errorLabel)
@@ -103,11 +104,12 @@ const addNewUser = async (newUser) => {
         console.error(err.response.data.message)
         let login = document.querySelector(err.response.data.id)
         errorRegisterBackAdd(login, err.response.data.message)
+        return "stop"
     }
 }
 const LogIn = async (data)=>{
     try{
-        const response = await axios.post('http://192.168.0.104:3000/userLogin/Login', data)
+        const response = await axios.post('http://localhost:3000/userLogin/Login', data)
         console.log(response.data.answer)
         if (response.data.statusCode===200){
             window.location.href='home.html'
@@ -180,13 +182,14 @@ const ChangePassword = async(password)=>{
 //     })
 //
 // })
-botton.addEventListener('click', function(){
+botton.addEventListener('click', async function(){
     if(validation(err)===true){
         let password = document.querySelector('#password').value
         let name = document.querySelector('#name').value
         let email = document.querySelector('#email').value
-        console.log(email)
-        addNewUser({userEmail:email})
+        if(await addNewUser({userEmail:email})=='stop'){
+            return
+        }
         const confirmation = document.querySelector('.confirmation')
         confirmation.innerHTML=''
         confirmation.innerHTML+=`<div class="input-box">
@@ -210,10 +213,10 @@ botton.addEventListener('click', function(){
 
     }
 })
-// botton1.addEventListener('click', function (){
-//     console.log('work')
-//     errorBackRemove(err_login)
-//     let password = document.querySelector('#password1').value
-//     let login = document.querySelector('#username').value
-//     LogIn({User_name: login, User_password: password})
-// })
+botton1.addEventListener('click', function (){
+    console.log('work')
+    errorBackRemove(err_login)
+    let password = document.querySelector('#password1').value
+    let login = document.querySelector('#username').value
+    LogIn({User_name: login, User_password: password})
+})
